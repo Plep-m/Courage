@@ -24,7 +24,7 @@ namespace Courage::Network
 		}
 	}
 
-	Server::Server(int port) : port(port)
+	Server::Server(int port, const Properties& props) : port(port), props(props)
 	{
 		server_fd = socket(AF_INET, SOCK_STREAM, 0);
 		if (server_fd < 0)
@@ -66,7 +66,7 @@ namespace Courage::Network
 
 				int next_state = handshake.back();
 				if (next_state == 1)
-					handleStatusRequest(client_fd);
+					handleStatusRequest(client_fd, props);
 			}
 			catch (std::exception &e)
 			{

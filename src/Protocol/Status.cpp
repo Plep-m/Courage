@@ -1,6 +1,7 @@
 #include "Courage/Protocol/Status.hpp"
 #include "Courage/Network/PacketIO.hpp"
 #include "Courage/Protocol/VarInt.hpp"
+#include "Courage/Config/Properties.hpp"
 #include <vector>
 #include <string>
 #include <stdexcept>
@@ -50,21 +51,27 @@ inline std::string encodeFileToBase64(const std::string &filename)
 
 namespace Courage::Protocol
 {
-	void handleStatusRequest(int sock)
+	void handleStatusRequest(int sock, const Properties& props)
 	{
 		auto request = receivePacket(sock);
 		if (request.empty() || request[0] != 0x00)
 			throw std::runtime_error("Invalid status request");
 
-		std::string faviconBase64 = encodeFileToBase64("../courage_favicon.png");
 
-		// TODO: A changer par fichier de config (protocol dépend de la version de MC, 767 = 1.21.1)
+		std::string motd = props.get("motd", "A Minecraft Server");
+   		std::string versionName = props.get("version-name", "1.21");
+		int protocol = props.getInt("protocol-version", 767);
+		int maxPlayers = props.getInt("max-players", 20);
+
+		std::string faviconPath = props.get("favicon", "../courage_favicon.png");
+    	std::string faviconBase64 = encodeFileToBase64(faviconPath);
+
 		std::string json = R"({
-            "version": {"name": "1.21", "protocol": 767},
-            "players": {"max": 20, "online": 25},
-            "description": {"text": "§aBienvenue sur Courage!"},
-            "favicon": ")" + faviconBase64 + R"("
-        })";
+			"version": {"name": ")" + versionName + R"(", "protocol": )" + std::to_string(protocol) + R"(},
+			"players": {"max": )" + std::to_string(maxPlayers) + R"(, "online": 0},
+			"description": {"text": ")" + motd + R"("},
+			"favicon": ")" + faviconBase64 + R"("
+		})";
 
 		std::vector<uint8_t> response;
 		writeVarInt(response, 0x00);

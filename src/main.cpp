@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Courage/utils.hpp"
 #include "Courage/version.h"
+#include "Courage/Config/Properties.hpp"
 
 // int main() {
 //     std::cout << "Courage Version: " << Courage::getVersion() << std::endl;
@@ -34,7 +35,9 @@
 
 int main()
 {
-	Courage::Network::Server server(25565);
+    Properties props("server.properties");
+    int port = props.getInt("server-port", 25565);
+	Courage::Network::Server server(port, props);
 	server.start();
 	return 0;
 }
