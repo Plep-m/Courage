@@ -3,6 +3,7 @@
 #include "Courage/Protocol/VarInt.hpp"
 #include "Courage/Protocol/Status.hpp"
 #include "Courage/Core/TickRegistry.hpp"
+#include "Courage/Network/LoginHandler.hpp"
 
 #include "Courage/Logic/HeartBeat.hpp"
 
@@ -153,6 +154,7 @@ void Server::configureDefaultTickLogic() {
 
 void Server::start() {
     std::cout << "[INFO] Serveur démarré sur le port " << port << std::endl;
+	LoginHandler loginHandler;
 
     while (running_.load()) {
         sockaddr_in client_addr{};
@@ -169,18 +171,11 @@ void Server::start() {
         }
 
         try {
-            auto handshake = receivePacket(client_fd, -1);
-            if (handshake.empty() || handshake[0] != 0x00)
-                throw std::runtime_error("Invalid handshake packet");
-
-            int next_state = handshake.back();
-            if (next_state == 1)
-                handleStatusRequest(client_fd, props);
-            else if (next_state == 2)
-                handleLoginRequest(client_fd);
+			loginHandler.handleConnection(client_fd, props);
         }
         catch (std::exception& e) {
             std::cerr << "[ERREUR] " << e.what() << std::endl;
+			loginHandler.removePlayer(client_fd);
         }
 
         if (evtQueue_) {
