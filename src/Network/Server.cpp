@@ -60,13 +60,15 @@ namespace Courage::Network
 
 			try
 			{
-				auto handshake = receivePacket(client_fd);
+				auto handshake = receivePacket(client_fd, -1);
 				if (handshake.empty() || handshake[0] != 0x00)
 					throw std::runtime_error("Invalid handshake packet");
 
 				int next_state = handshake.back();
 				if (next_state == 1)
 					handleStatusRequest(client_fd, props);
+				else if (next_state == 2)
+					handleLoginRequest(client_fd);
 			}
 			catch (std::exception &e)
 			{

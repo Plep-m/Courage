@@ -5,6 +5,6 @@
 
 namespace Courage::Network
 {
-	void sendPacket(int sock, const std::vector<uint8_t> &data);
-	std::vector<uint8_t> receivePacket(int sock);
+	void sendPacket(int sock, const std::vector<uint8_t> &data, int compressionThreshold);
+	std::vector<uint8_t> receivePacket(int sock, int compressionThreshold);
 }

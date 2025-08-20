@@ -27,6 +27,29 @@ namespace Courage::Protocol
 		return result;
 	}
 
+	int32_t readVarInt(const std::vector<uint8_t> &data, size_t &pos)
+	{
+		int numRead = 0;
+		int32_t result = 0;
+		uint8_t byte = 0;
+
+		do
+		{
+			if (pos >= data.size())
+				throw std::runtime_error("VarInt too long - end of buffer");
+
+			byte = data[pos++];
+			int value = (byte & 0b01111111);
+			result |= (value << (7 * numRead));
+
+			numRead++;
+			if (numRead > 5)
+				throw std::runtime_error("VarInt too big !");
+		} while ((byte & 0b10000000) != 0);
+
+		return result;
+	}
+
 	void writeVarInt(std::vector<uint8_t> &buffer, int32_t value)
 	{
 		do

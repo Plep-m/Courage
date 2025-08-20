@@ -53,7 +53,7 @@ namespace Courage::Protocol
 {
 	void handleStatusRequest(int sock, const Properties& props)
 	{
-		auto request = receivePacket(sock);
+		auto request = receivePacket(sock, -1);
 		if (request.empty() || request[0] != 0x00)
 			throw std::runtime_error("Invalid status request");
 
@@ -78,15 +78,15 @@ namespace Courage::Protocol
 		writeVarInt(response, json.size());
 		response.insert(response.end(), json.begin(), json.end());
 
-		sendPacket(sock, response);
+		sendPacket(sock, response, -1);
 
-		auto ping = receivePacket(sock);
+		auto ping = receivePacket(sock, -1);
 		if (ping.empty() || ping[0] != 0x01)
 			throw std::runtime_error("Invalid ping request");
 
 		std::vector<uint8_t> pong;
 		writeVarInt(pong, 0x01);
 		pong.insert(pong.end(), ping.begin() + 1, ping.end());
-		sendPacket(sock, pong);
+		sendPacket(sock, pong, -1);
 	}
 }

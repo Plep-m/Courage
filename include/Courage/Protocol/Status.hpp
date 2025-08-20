@@ -5,4 +5,5 @@
 namespace Courage::Protocol
 {
 	void handleStatusRequest(int sock, const Properties& props);
+	void handleLoginRequest(int sock);
 }
