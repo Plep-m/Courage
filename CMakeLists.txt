@@ -23,6 +23,11 @@ target_include_directories(${PROJECT_NAME}
         ${INCLUDE_DIR}
 )
 
+option(ENABLE_DEBUG "Enable debug logging in the code" ON)
+if(ENABLE_DEBUG)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE ENABLE_DEBUG)
+endif()
+
 find_package(ZLIB)
 
 if (ZLIB_FOUND)
@@ -30,6 +35,25 @@ if (ZLIB_FOUND)
     target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB)
 else()
     message(STATUS "System ZLIB not found")
+endif()
+
+# mbedTLS
+find_package(MbedTLS QUIET)
+
+if (MbedTLS_FOUND)
+    message(STATUS "Using system mbedTLS")
+    target_link_libraries(${PROJECT_NAME} PRIVATE MbedTLS::mbedcrypto)
+else()
+    message(STATUS "System mbedTLS not found, using manual link")
+    target_link_libraries(${PROJECT_NAME} PRIVATE mbedcrypto)
+endif()
+
+find_library(UUID_LIB uuid)
+if (UUID_LIB)
+    message(STATUS "Using system libuuid")
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${UUID_LIB})
+else()
+    message(FATAL_ERROR "libuuid not found, please install uuid-dev")
 endif()
 
 # Install
