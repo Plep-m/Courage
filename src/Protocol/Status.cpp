@@ -51,42 +51,32 @@ inline std::string encodeFileToBase64(const std::string &filename)
 
 namespace Courage::Protocol
 {
-	void handleStatusRequest(int sock, const Properties& props)
+	void handleStatusRequest(const NetEvent& ev, const Properties& props) 
 	{
-		auto request = receivePacket(sock, -1);
-		if (request.empty() || request[0] != 0x00)
-			throw std::runtime_error("Invalid status request");
+        const auto& data = *ev.payload;
+        if (data.empty() || data[0] != 0x00)
+            throw std::runtime_error("Invalid status request");
 
+        std::string motd = props.get("motd", "A Minecraft Server");
+        std::string versionName = props.get("version-name", "1.21");
+        int protocol = props.getInt("protocol-version", 767);
+        int maxPlayers = props.getInt("max-players", 20);
 
-		std::string motd = props.get("motd", "A Minecraft Server");
-   		std::string versionName = props.get("version-name", "1.21");
-		int protocol = props.getInt("protocol-version", 767);
-		int maxPlayers = props.getInt("max-players", 20);
+        std::string faviconPath = props.get("favicon", "../courage_favicon.png");
+        std::string faviconBase64 = encodeFileToBase64(faviconPath);
 
-		std::string faviconPath = props.get("favicon", "../courage_favicon.png");
-    	std::string faviconBase64 = encodeFileToBase64(faviconPath);
+        std::string json = R"({
+            "version": {"name": ")" + versionName + R"(", "protocol": )" + std::to_string(protocol) + R"(},
+            "players": {"max": )" + std::to_string(maxPlayers) + R"(, "online": 0},
+            "description": {"text": ")" + motd + R"("},
+            "favicon": ")" + faviconBase64 + R"("
+        })";
 
-		std::string json = R"({
-			"version": {"name": ")" + versionName + R"(", "protocol": )" + std::to_string(protocol) + R"(},
-			"players": {"max": )" + std::to_string(maxPlayers) + R"(, "online": 0},
-			"description": {"text": ")" + motd + R"("},
-			"favicon": ")" + faviconBase64 + R"("
-		})";
+        std::vector<uint8_t> response;
+        writeVarInt(response, 0x00);
+        writeVarInt(response, json.size());
+        response.insert(response.end(), json.begin(), json.end());
 
-		std::vector<uint8_t> response;
-		writeVarInt(response, 0x00);
-		writeVarInt(response, json.size());
-		response.insert(response.end(), json.begin(), json.end());
-
-		sendPacket(sock, response, -1);
-
-		auto ping = receivePacket(sock, -1);
-		if (ping.empty() || ping[0] != 0x01)
-			throw std::runtime_error("Invalid ping request");
-
-		std::vector<uint8_t> pong;
-		writeVarInt(pong, 0x01);
-		pong.insert(pong.end(), ping.begin() + 1, ping.end());
-		sendPacket(sock, pong, -1);
-	}
+        sendPacket(ev.clientFd, response, -1);
+    }
 }

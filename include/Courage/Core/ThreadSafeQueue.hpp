@@ -34,6 +34,16 @@ public:
         return v;
     }
 
+    T& back() {
+        std::lock_guard<std::mutex> lk(m_);
+        return q_.back();
+    }
+
+    const T& back() const {
+        std::lock_guard<std::mutex> lk(m_);
+        return q_.back();
+    }
+
     bool empty() const {
         std::lock_guard<std::mutex> lk(m_);
         return q_.empty();

@@ -12,34 +12,37 @@
 #include <stdexcept>
 #include <iostream>
 
+using namespace Courage::Network;
 namespace Courage::Protocol
+
 {
-	void handleLoginRequest(int sock)
-	{
-		auto loginStart = Network::receivePacket(sock, -1);
-		if (loginStart.empty() || loginStart[0] != 0x00)
-			throw std::runtime_error("Invalid login start packet");
+	void handleLoginRequest(const NetEvent& ev) {
+        const auto& data = *ev.payload;
+        if (data.empty() || data[0] != 0x00)
+            throw std::runtime_error("Invalid login start packet");
 
-		size_t pos = 1;
-		std::string username = readVarString(loginStart, pos);
+        size_t pos = 1;
+        std::string username = readVarString(data, pos);
 
-		Courage::Network::Client client(sock, username);
-		std::string offlineUUID = client.getOfflineUUID();
+        Client client(ev.clientFd, username);
+        std::string offlineUUID = client.getOfflineUUID();
 
-		DEBUG_LOG("Generated offline UUID for user '" << username << "': " << offlineUUID);
+        DEBUG_LOG("Generated offline UUID for user '" << username << "': " << offlineUUID);
 
-		std::vector<uint8_t> setCompression;
-		writeVarInt(setCompression, 0x03);
-		writeVarInt(setCompression, 256);
-		Network::sendPacket(sock, setCompression, -1);
+        // Compression
+        std::vector<uint8_t> setCompression;
+        writeVarInt(setCompression, 0x03);
+        writeVarInt(setCompression, 256);
+        sendPacket(ev.clientFd, setCompression, -1);
 
-		std::vector<uint8_t> loginSuccess;
-		writeVarInt(loginSuccess, 0x02);
+        // Login success
+        std::vector<uint8_t> loginSuccess;
+        writeVarInt(loginSuccess, 0x02);
+        writeVarString(loginSuccess, offlineUUID);
+        writeVarString(loginSuccess, username);
+        loginSuccess.push_back(0x00); // hasProperties=false
+        sendPacket(ev.clientFd, loginSuccess, 256);
 
-		writeVarString(loginSuccess, offlineUUID);
-		writeVarString(loginSuccess, username);
-		loginSuccess.push_back(0x00); // TODO: désactiver les hasProperties (A changer plus tard) = skin, cape etc
-		Network::sendPacket(sock, loginSuccess, 256);
-		// TODO: Charger le jeu j'imagine
-	}
+        // At this point, switch the connection state to "Play".
+    }
 }
