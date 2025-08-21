@@ -8,43 +8,43 @@
 #include <atomic>
 #include <memory>
 #include <thread>
-#include <mutex>
-#include <unordered_map>
 
 namespace Courage::Network {
 
-struct Connection {
-    int fd;
-    enum class ConnState { Handshaking, Play } state;
-};
+class ConnectionManager;
+class EventDispatcher;
 
 class Server {
 public:
     ~Server();
-    Server(int port, const Properties& props, std::shared_ptr<Courage::Core::ThreadSafeQueue<NetEvent>> evtQueue);
+    Server(int port,
+           const Properties& props,
+           std::shared_ptr<Courage::Core::ThreadSafeQueue<NetEvent>> evtQueue);
+
     void run();
     void stop();
-    void dispatchEvent(const NetEvent& ev);
 
 private:
-    void start();
-    void netThreadEntry();
-    void configureDefaultTickLogic();
     void handle_sigint();
     static void handle_sigint_static(int);
+    void netThreadEntry();
 
-    int server_fd{-1};
-    int port;
+    int port_;
     std::atomic<bool> running_{true};
-    const Properties* props_;
-    std::shared_ptr<Courage::Core::ThreadSafeQueue<NetEvent>> evtQueue_;
+    const Properties* props_{nullptr};
+
+    // Ownership
     std::unique_ptr<Courage::Core::WorkerPool> pool_;
     std::unique_ptr<Courage::Core::TickCoordinator> tick_;
     std::unique_ptr<Courage::Core::TickRegistry> tickRegistry_;
+
+    std::unique_ptr<ConnectionManager> connections_;
+    std::unique_ptr<EventDispatcher> dispatcher_;
+
+    std::shared_ptr<Courage::Core::ThreadSafeQueue<NetEvent>> evtQueue_;
     std::thread netThread_;
-    std::mutex connsMutex_;
-    std::unordered_map<int, Connection> conns_;
+
     static std::atomic<Server*> instance_;
 };
 
-} // namespace Courage::Network
+}
