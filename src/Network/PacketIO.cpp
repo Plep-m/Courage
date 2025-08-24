@@ -33,6 +33,10 @@ namespace Courage::Network
 		std::vector<uint8_t> finalPacket;
 		writeVarInt(finalPacket, packet.size());
 		finalPacket.insert(finalPacket.end(), packet.begin(), packet.end());
+		std::vector<uint8_t> final;
+		Protocol::writeVarInt(final, packet.size());
+		final.insert(final.end(), packet.begin(), packet.end());
+
 		send(sock, finalPacket.data(), finalPacket.size(), 0);
 	}
 
