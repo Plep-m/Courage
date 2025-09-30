@@ -37,6 +37,15 @@ else()
     message(STATUS "System ZLIB not found")
 endif()
 
+find_package(nlohmann_json QUIET)
+
+if (nlohmann_json_FOUND)
+    message(STATUS "Using system nlohmann_json")
+    target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
+else()
+    message(STATUS "System nlohmann_json not found, falling back to external headers")
+endif()
+
 # mbedTLS
 find_package(MbedTLS QUIET)
 

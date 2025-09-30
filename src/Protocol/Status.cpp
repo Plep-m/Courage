@@ -18,11 +18,11 @@ namespace Courage::Protocol
 	void handleStatusRequest(int sock, const Properties& props)
 	{
 		auto ping = receivePacket(sock, -1);
-		if (ping.empty() || ping[0] != 0x01)
+		if (ping.empty() || ping[0] != Network::PacketIds::STATUS)
 			throw std::runtime_error("Invalid ping request");
 
 		std::vector<uint8_t> pong;
-		writeVarInt(pong, 0x01);
+		writeVarInt(pong, Network::PacketIds::STATUS);
 		pong.insert(pong.end(), ping.begin() + 1, ping.end());
 		sendPacket(sock, pong, -1);
 	}

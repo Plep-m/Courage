@@ -3,6 +3,7 @@
 #include <string>
 #include <mbedtls/md5.h>
 #include <algorithm>
+#include <vector>
 #include <array>
 
 namespace Courage::Network

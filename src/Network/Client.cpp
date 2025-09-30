@@ -32,10 +32,10 @@ namespace Courage::Network
 	Client::Client(int socketFd)
 		: socketFd_(socketFd), gamemode_(1), online_(true)
 	{
-		setPosition(0, 300, 0, -0.85f, -0.6f);
-		setFood(20);
+		setPosition(8, 4, 8, -0.85f, -0.6f);
+		setFood(8);
 		setSaturation(20.0);
-		setHealth(20.0);
+		setHealth(10.0);
 	}
 
 	Client::~Client()

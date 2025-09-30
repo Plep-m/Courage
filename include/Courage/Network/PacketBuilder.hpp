@@ -32,13 +32,6 @@ namespace Courage::Network
 		static std::string buildFeatureFlags(const std::string &namespaceName = "minecraft:courage");
 		static std::string buildKnownPacks(const std::string &namespaceName, const std::string &packName, const std::string &version);
 
-		static std::string longToHex(uint64_t value);
-		static std::string stringToHex(const std::string &str);
-		static std::string varIntToHex(int value);
-		static std::string doubleToHex(double value);
-		static std::string floatToHex(float value);
-		static std::string stringToHexWithLength(const std::string &str);
-		static std::string uuidToHex(const std::array<uint8_t, 16> &uuidBytes);
 		static std::string buildWorldBorderPacket(double centerX = 0.0, double centerZ = 0.0, double oldSize = 0.0, double newSize = 59999968.0,
 												  int64_t speed = 0, int32_t portalTeleportBoundary = 29999984, int32_t warningBlocks = 5, int32_t warningTime = 15);
 		static std::string buildPlayerPositionPacket(double x, double y, double z, float yaw, float pitch, uint8_t flags, int32_t teleportId);
@@ -51,6 +44,22 @@ namespace Courage::Network
 		static std::string buildStepTickPacket(int32_t steps);
 		static std::string buildUpdateViewPositionPacket(int32_t chunkX, int32_t chunkZ);
 		static std::string buildExperiencePacket(float experienceBar, int32_t level, int32_t totalExperience);
+
+		static std::string buildChunkDataPacket(int chunkX, int chunkZ);
+		static std::vector<uint8_t> getOrGenerateChunk(int chunkX, int chunkZ);
+		static std::vector<uint8_t> extractChunkSectionsFromNBT(const std::vector<uint8_t> &nbtData);
+		static std::vector<uint8_t> extractBiomesFromNBT(const std::vector<uint8_t> &nbtData);
+		static std::vector<uint8_t> extractHeightmapsFromNBT(const std::vector<uint8_t> &nbtData);
+		
+		static std::string longToHex(uint64_t value);
+		static std::string stringToHex(const std::string &str);
+		static std::string varIntToHex(int value);
+		static std::string doubleToHex(double value);
+		static std::string floatToHex(float value);
+		static std::string byteToHex(uint8_t value);
+		static std::string bytesToHex(const std::vector<uint8_t> &data);
+		static std::string stringToHexWithLength(const std::string &str);
+		static std::string uuidToHex(const std::array<uint8_t, 16> &uuidBytes);
 
 	private:
 		PacketBuilder() = delete;

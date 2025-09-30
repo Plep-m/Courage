@@ -1,10 +1,66 @@
 #include "Courage/Network/PacketBuilder.hpp"
+#include "Courage/World/Region.hpp"
+#include "Courage/World/Chunk.hpp"
+#include "Courage/World/Block.hpp"
+#include "Courage/World/Terrain.hpp"
 #include <sstream>
 #include <iomanip>
 #include <cstring>
 
 namespace Courage::Network
 {
+
+	void writeVarInt(std::string &output, int value)
+	{
+		do
+		{
+			uint8_t temp = value & 0x7F;
+			value >>= 7;
+			if (value != 0)
+			{
+				temp |= 0x80;
+			}
+			output.push_back(temp);
+		} while (value != 0);
+	}
+
+	void writeVarInt(std::vector<uint8_t> &output, int value)
+	{
+		do
+		{
+			uint8_t temp = value & 0x7F;
+			value >>= 7;
+			if (value != 0)
+			{
+				temp |= 0x80;
+			}
+			output.push_back(temp);
+		} while (value != 0);
+	}
+
+	std::string writeInt32BE(int value)
+	{
+		std::string output;
+		output.push_back((value >> 24) & 0xFF);
+		output.push_back((value >> 16) & 0xFF);
+		output.push_back((value >> 8) & 0xFF);
+		output.push_back(value & 0xFF);
+		return output;
+	}
+
+	void writeInt32BE(std::vector<uint8_t> &output, int32_t value)
+	{
+		output.push_back((value >> 24) & 0xFF);
+		output.push_back((value >> 16) & 0xFF);
+		output.push_back((value >> 8) & 0xFF);
+		output.push_back(value & 0xFF);
+	}
+
+	void writeInt16BE(std::vector<uint8_t> &output, uint16_t value)
+	{
+		output.push_back((value >> 8) & 0xFF);
+		output.push_back(value & 0xFF);
+	}
 
 	std::string PacketBuilder::longToHex(uint64_t value)
 	{
@@ -26,19 +82,36 @@ namespace Courage::Network
 
 		return ss.str();
 	}
-
 	std::string PacketBuilder::varIntToHex(int value)
 	{
 		std::stringstream ss;
+		uint32_t uvalue = static_cast<uint32_t>(value);
+
 		do
 		{
-			uint8_t temp = value & 0x7F;
-			value >>= 7;
-			if (value != 0)
+			uint8_t temp = uvalue & 0x7F;
+			uvalue >>= 7;
+			if (uvalue != 0)
 				temp |= 0x80;
 
 			ss << std::hex << std::setw(2) << std::setfill('0') << (int)temp;
-		} while (value != 0);
+		} while (uvalue != 0);
+
+		return ss.str();
+	}
+
+	std::string PacketBuilder::byteToHex(uint8_t value)
+	{
+		std::ostringstream ss;
+		ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(value);
+		return ss.str();
+	}
+
+	std::string PacketBuilder::bytesToHex(const std::vector<uint8_t> &data)
+	{
+		std::stringstream ss;
+		for (uint8_t b : data)
+			ss << byteToHex(b);
 		return ss.str();
 	}
 
